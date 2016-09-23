@@ -1,0 +1,21 @@
+extends ./layout
+
+block head
+  title 注册成功 - #{siteName}
+
+
+block main
+  .panel.panel-default
+    .panel-heading
+      .panel-title 注册成功
+    .panel-body
+      .alert.alert-success
+        span.glyphicon.glyphicon-ok
+        span  恭喜您成功注册为本站会员，现在你可以 
+        a.btn.btn-danger(href="/login") 登录
+        span  并参与社区讨论和分享了^。^
+
+
+block sidebar
+
+  include mod-topic-warning

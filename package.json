@@ -1,0 +1,29 @@
+{
+  "name": "jspapa",
+  "version": "1.0.0",
+  "description": "jspapa.com",
+  "main": "index.js",
+  "scripts": {
+    "test": "t"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/biggerV/jspapa.git"
+  },
+  "keywords": [
+    "jspapa",
+    "bbs"
+  ],
+  "author": "Victor",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0",
+    "express-session": "^1.14.1",
+    "markdown": "^0.5.0",
+    "mongodb": "^2.2.7",
+    "multer": "^1.2.0",
+    "nodemailer": "^2.6.0",
+    "pug": "^2.0.0-beta5"
+  }
+}

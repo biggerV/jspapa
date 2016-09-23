@@ -1,0 +1,46 @@
+extends ./layout
+
+block head
+  title 用户登录 - #{siteName}
+  script(src="/js/validate.js")
+
+
+block main
+  .panel.panel-default
+    .panel-heading
+      .panel-title 用户登录
+    .panel-body
+      if msg
+        .alert.alert-warning= msg
+      form.row.validate(action="", method="post")
+        .col-md-5
+          .form-group
+            label(for="name") 用户名
+            input.form-control(type="text", id="name", name="name", validate="required")
+          .form-group
+            label(for="pwd") 密码
+            input.form-control(type="password", id="pwd", name="pwd", validate="required,password")
+          .form-group
+            button.btn.btn-primary(type="submit") 登 录
+        .col-md-7
+          hr
+          .help-block.text-center
+            p 还没注册？你可以点这里
+              a(href="/reg") 注册账号
+            p 忘记密码？你可以点这里
+              a(href="/forgot") 找回密码
+          hr
+
+
+
+block sidebar
+
+  include mod-topic-warning
+
+  
+
+block foot
+  script.
+    $(function () {
+      $("form.validate").formValidate();
+    });

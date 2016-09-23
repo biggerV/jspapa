@@ -1,0 +1,48 @@
+extends ./layout
+
+block head
+  title 用户注册 - #{siteName}
+  script(src="/js/validate.js")
+
+
+block main
+  .panel.panel-default
+    .panel-heading
+      .panel-title 用户注册
+    .panel-body
+      if msg
+        .alert.alert-warning= msg
+      form.row.validate(action="", method="post")
+        .col-md-5
+          .form-group
+            label(for="name") 用户名
+            input.form-control(type="text", id="name", name="name", validate="required,username")
+          .form-group
+            label(for="pwd") 密码
+            input.form-control(type="password", id="pwd", name="pwd", validate="required,password")
+          .form-group
+            label(for="email") 邮箱地址
+            input.form-control(type="text", id="email", name="email", validate="required,email")
+          .form-group
+            button.btn.btn-primary(type="submit") 注 册
+        .col-md-7
+          hr
+          .help-block.text-center
+            p 已经有账号了？请登录
+            p 
+              a(href="login") 我要登录
+          hr
+
+
+
+block sidebar
+  
+  include mod-topic-warning
+
+
+
+block foot
+  script.
+    $(function () {
+      $("form.validate").formValidate();
+    });

@@ -1,0 +1,74 @@
+extends ./layout
+
+block head
+  title 发布新话题 - #{siteName}
+  script(src="/js/markdown.js")
+  script(src="/js/validate.js")
+
+
+block main
+  .panel.panel-default
+    .panel-heading
+      .panel-title= isCreate ? "发布新话题" : "编辑话题"
+    .panel-body
+      if msg
+        .alert.alert-warning= msg
+      form.col-md-12.form-horizontal.validate(action="", method="post")
+        .row
+          .form-group
+            label.col-md-1.control-label(for="cate") 板块
+            .col-md-11
+              select.form-control(id="cate", name="cate")
+                option 请选择
+                each val,key in cates
+                  if key == topic.cate
+                    option(value=key, selected=true)= val
+                  else
+                    option(value=key)= val
+          .form-group
+            label.col-md-1.control-label(for="title") 标题
+            .col-md-11
+              input.form-control(type="text", id="title", name="title", placeholder="8个字以上", value=topic.title, validate="required")
+        .form-group
+          //-内容输入框
+          .well.well-sm Tips：内容书写支持 Markdown语法
+          textarea#reply-input.form-control(name="content", rows="20", placeholder="请输入内容...", validate="required")= topic.content
+        .form-group
+          button.btn.btn-primary(type="submit", style="margin-right:10px")
+            span.glyphicon.glyphicon-ok
+            span  提交
+          button.btn.btn-default(type="reset") 重置
+          button#reply-preview-btn.btn.btn-success.pull-right(type="button") 预览
+        p
+        .row
+          #reply-preview.well(style="display:none")
+        script.
+          $(function(){
+            function Editor(input, preview, btn) {
+              this.update = function () {
+                preview.html(markdown.toHTML(input.val()));
+              };
+              this.previews = function(){
+                preview.toggle();
+              }
+              input.on("input", this.update);
+              btn.on("click", this.previews);
+              this.update();
+            }
+            new Editor($("#reply-input"), $("#reply-preview"), $("#reply-preview-btn"));
+          });
+
+
+
+block sidebar
+
+  include mod-topic-warning
+  include mod-markdown-explain
+
+
+
+block foot
+  script.
+    $(function () {
+      $("form.validate").formValidate();
+    });

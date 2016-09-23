@@ -1,0 +1,13 @@
+mixin pagination(page)
+  if page.total
+    div
+      ul.pagination
+        li.disabled
+          a(href="javascript:;")= page.cur+"/"+page.total
+        li(class={hide: page.cur==1})
+          a(href="?page="+(page.cur-1)) &laquo;
+        - for(var i = 1; i <= page.total; i++)
+          li(class={active: i==page.cur})
+            a(href="?page="+i)= i
+        li(class={hide: page.cur==page.total})
+          a(href="?page="+(page.cur+1)) &raquo;

@@ -1,0 +1,50 @@
+extends ./layout
+
+block head
+  title 个人中心 - #{siteName}
+
+
+block main
+  //-面包屑导航
+  ol.breadcrumb
+    li
+      a(href="/", title="首页") 
+        span.glyphicon.glyphicon-home 
+    li.active 个人中心
+
+  .panel.panel-default
+    .panel-heading
+      .panel-title 最近发布的话题
+    .panel-body
+      include mod-topics-list
+      +topicList(topics, false)
+
+    .panel-footer.text-right
+      a.btn.btn-default(href="/user/"+iuser.name+"/topics") 查看更多
+
+
+  .panel.panel-default
+    .panel-heading
+      .panel-title 最近参与过的话题
+    .panel-body
+      include mod-topics-list
+      +topicList(replies, false)
+
+
+
+
+block sidebar
+
+  include mod-user-card
+  +usercard("个人信息", iuser || user)
+
+  include mod-topic-create-btn
+
+  include mod-topic-warning
+
+
+block foot
+  script.
+    $(function () {
+
+    });

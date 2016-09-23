@@ -1,0 +1,82 @@
+extends ./layout
+
+block head
+  title 信息设置 - 个人中心 - #{siteName}
+  script(src="/js/validate.js")
+
+
+block main
+  //-面包屑导航
+  ol.breadcrumb
+    li
+      a(href="/", title="首页") 
+        span.glyphicon.glyphicon-home 
+    li
+      a(href="/user/"+user.name) 个人中心
+    li.active 信息设置
+
+  .panel.panel-default
+    .panel-heading
+      .panel-title 信息设置
+    .panel-body
+      if msg
+        .alert.alert-success= msg
+      form.form-horizontal.validate(action="", method="post", enctype="multipart/form-data")
+        .form-group
+          label.col-md-2.control-label 用户名
+          p.col-md-5.form-control-static= me.name
+        .form-group
+          label.col-md-2.control-label(for="password") 密码
+          .col-md-5
+            input.form-control(id="password", name="pwd", type="password", validate="password")
+            .help-block 不修改请不要填写密码
+        .form-group
+          label.col-md-2.control-label 邮箱
+          p.col-md-5.form-control-static= me.email
+        .form-group
+          label.col-md-2.control-label(for="avatar") 头像
+          .col-md-5
+            input.form-control(id="avatar", name="avatar", value=me.avatar, type="file")
+        .form-group
+          label.col-md-2.control-label(for="website") 个人网站
+          .col-md-5
+            input.form-control(id="website", name="site", value=me.site, type="text", validate="url")
+        .form-group
+          label.col-md-2.control-label(for="city") 所在城市
+          .col-md-5
+            input.form-control(id="city", name="city", value=me.city, type="text")
+        .form-group
+          label.col-md-2.control-label(for="address") 微博
+          .col-md-5
+            input.form-control(id="address", name="weibo", value=me.weibo, type="text")
+        .form-group
+          label.col-md-2.control-label(for="address") 微信
+          .col-md-5
+            input.form-control(id="address", name="wechat", value=me.wechat, type="text")
+        .form-group
+          label.col-md-2.control-label(for="address") Github
+          .col-md-5
+            input.form-control(id="address", name="github", value=me.github, type="text")
+        .form-group
+          label.col-md-2.control-label(for="address") 个性签名
+          .col-md-5
+            input.form-control(id="address", name="sign", value=me.sign, type="text")
+        .form-group
+          .col-md-10.col-md-offset-2
+            button.btn.btn-primary(type="submit") 保 存
+
+
+block sidebar
+  include mod-user-card
+  +usercard("个人信息", user)
+
+  include mod-topic-create-btn
+
+  include mod-topic-warning
+
+
+block foot
+  script.
+    $(function () {
+      $("form.validate").formValidate();
+    });

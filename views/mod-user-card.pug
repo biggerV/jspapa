@@ -1,0 +1,19 @@
+mixin usercard(title, user)
+  if user
+    .panel.panel-default
+      .panel-heading
+        .panel-title= title
+      .panel-body
+        p.clearfix
+          a(href="/user/"+user.name)
+            img.pull-left(src=user.avatar ? "/uploads/avatar/"+user.avatar : "/images/avatar.png", style="width:50px;height:50px;margin-right:10px")
+            strong= user.name
+          br
+          if !user.sign
+            em “这家伙很懒，什么都没有留下”
+          else
+            span= user.sign
+        div= user.weibo ? "微博：" + user.weibo : ""
+        div= user.wechat ? "微信："+ user.wechat : ""
+        div= user.site ? "个人网站：" + user.site : ""
+        div= user.github ? "Gitbuh：" + user.github : ""

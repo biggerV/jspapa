@@ -1,0 +1,41 @@
+extends ./layout
+
+block head
+  title 个人中心 - #{siteName}
+
+
+block main
+  //-面包屑导航
+  ol.breadcrumb
+    li
+      a(href="/", title="首页") 
+        span.glyphicon.glyphicon-home 
+    li
+      a(href="/user/"+iuser.name) 个人中心
+    li.active #{iuser.name}发布的话题
+
+  .panel.panel-default
+    .panel-heading
+      .panel-title 我发布的话题
+    .panel-body
+      include mod-topics-list
+      +topicList(topics, true)
+
+      include mod-pagination
+      +pagination(page)
+
+
+block sidebar
+  include mod-user-card
+  +usercard("个人信息", iuser)
+
+  include mod-topic-create-btn
+
+  include mod-topic-warning
+
+
+block foot
+  script.
+    $(function () {
+
+    });

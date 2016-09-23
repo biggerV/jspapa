@@ -1,0 +1,129 @@
+extends ./layout
+
+block head
+  title #{topic.title} - #{siteName}
+  script(src="/js/markdown.js")
+
+
+
+
+block main
+  //-面包屑导航
+  ol.breadcrumb
+    li
+      a(href="/", title="首页") 
+        span.glyphicon.glyphicon-home 
+    li
+      a(href="/cate/"+cate.id)= cate.name
+    li.active 主题
+
+  //-主题正文
+  .panel.panel-default
+    .panel-heading
+      h3.panel-title(style="font-size:24px")=topic.title
+        if topic.type === "good"
+          span.glyphicon.glyphicon-flag
+      div(style="font-size:12px;color:#888") 发布于 #{topic.created.getFullYear()}/#{topic.created.getMonth()}/#{topic.created.getDate()} #{topic.created.getHours()}:#{topic.created.getMinutes()} &nbsp; #{topic.views || 0}浏览 &nbsp; #{topic.comments || 0}回复
+    .panel-body!= topic.content
+    .panel-footer.text-right
+      if user && user.name == author.name
+        a.btn.btn-default.btn-sm(href="/topic/edit/"+topic._id, title="编辑", data-toggle="tooltip", style="margin-right:5px")
+          span.glyphicon.glyphicon-edit
+      if user && user.name == "admin"
+        a.btn.btn-default.btn-sm(href="/topic/type/"+topic._id+"/good", title="设为精华", data-toggle="tooltip", style="margin-right:5px")
+          span.glyphicon.glyphicon-flag
+        a.btn.btn-default.btn-sm(href="/topic/del/"+topic._id, title="删除", data-toggle="tooltip", style="margin-right:5px")
+          span.glyphicon.glyphicon-remove
+      a.btn.btn-default.btn-sm(href="#comments", title="回复", data-toggle="tooltip")
+        span.glyphicon.glyphicon-comment
+
+  //-评论列表
+  if comment.length
+    .panel.panel-default#comments
+      .panel-heading
+        .panel-title
+          span.glyphicon.glyphicon-comment
+          span  回复
+      .panel-body
+        ul.media-list
+          each comm in comment
+            li.media(id=comm._id)
+              .media-left
+                a(href="/user/"+comm.user.name)
+                  img.media-object(src="/uploads/avatar/avatar-"+comm.user.name || "/images/avatar.png", style="width:30px;height:30px;")
+              .media-body
+                h4.media-heading
+                  a(href="/user/"+comm.user.name)= comm.user.name
+                  span.small  #{comm.created.getFullYear()}/#{comm.created.getMonth()}/#{comm.created.getDate()} #{comm.created.getHours()}:#{comm.created.getMinutes()}
+                div.content!= comm.content
+            hr
+
+  //-回复框
+  if user
+    .panel.panel-default#reply
+      .panel-heading
+        .panel-title
+          span.glyphicon.glyphicon-plus
+          span  添加新回复
+      .panel-body
+        form(method="post", action="")
+          .form-group
+            .well.well-sm Tips：回复内容支持 Markdown语法
+            textarea#reply-input.form-control(name="content", rows="10", placeholder="请输入内容...")
+          button.btn.btn-primary(type="submit", style="margin-right:10px") 提交
+          button.btn.btn-default(type="reset") 清空
+          button#reply-preview-btn.btn.btn-success.pull-right(type="button") 预览
+        p
+        #reply-preview.well(style="display:none")
+      script.
+        $(function(){
+          function Editor(input, preview, btn) {
+            this.update = function () {
+              preview.html(markdown.toHTML(input.val()));
+            };
+            this.previews = function(){
+              preview.toggle();
+            }
+            input.on("input", this.update);
+            btn.on("click", this.previews);
+          }
+          new Editor($("#reply-input"), $("#reply-preview"), $("#reply-preview-btn"));
+        });
+  else
+    include mod-login-tip
+
+
+
+
+
+
+block sidebar
+
+  include mod-user-card
+  +usercard('发布者', author)
+
+  include mod-topic-create-btn
+      
+  .panel.panel-default
+    .panel-heading
+      .panel-title 作者的其他话题
+    ul.list-group
+      each atopic in authorTopics
+        li.list-group-item
+          a(href="/topic/show/"+atopic._id)= atopic.title
+
+  include mod-topic-warning
+  include mod-markdown-explain
+
+
+
+
+
+block foot
+  script.
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip();
+      $('[data-toggle="popover"]').popover({
+        "html": true
+      });
+    });

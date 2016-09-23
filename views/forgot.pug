@@ -1,0 +1,38 @@
+extends ./layout
+
+block head
+  title 找回密码 - #{siteName}
+  script(src="/js/validate.js")
+
+
+block main
+  .panel.panel-default
+    .panel-heading
+      .panel-title 找回密码
+    .panel-body
+      if msg
+        .alert.alert-warning= msg
+      else
+        form.validate(action="", method="post")
+          .form-group
+            label(for="email") 邮箱地址
+            input.form-control(type="text", id="email", name="email", validate="required,email")
+          .help-block
+            p 请输入您注册时使用的邮箱地址，系统会把密码重置链接发到您的邮箱
+          button.btn.btn-primary#sub(type="submit") 找 回
+
+
+
+block sidebar
+  .panel.panel-default
+    .panel-heading
+      .panel-title 注意事项
+    .panel-body
+      div 每天只能使用一次找回密码功能
+
+
+block foot
+  script.
+    $(function () {
+      $("form.validate").formValidate();
+    });

@@ -1,0 +1,42 @@
+header.navbar.navbar-default.navbar-static-top
+  .container
+    .navbar-header
+      button.navbar-toggle.collapsed(data-target="#js-navbar", data-toggle="collapse", type="button")
+        span.icon-bar
+        span.icon-bar
+        span.icon-bar
+      a(href="/").navbar-brand JSpapa
+
+
+    nav.collapse.navbar-collapse#js-navbar
+      ul.nav.navbar-nav
+        each val,key in cates
+          li(class={active: cate && cate.id === key})
+            a(href="/cate/"+key)= val
+      if !user
+        ul.nav.navbar-nav.navbar-right
+          li
+            a(href="/login") 登录
+          li
+            a(href="/reg") 注册
+      if user
+        ul.nav.navbar-nav.navbar-right
+          li.dropdown
+            a.dropdown-toggle#dropdownUser(href="javascript:;", data-toggle="dropdown", aria-haspopup="true", aria-expanded="true") #{user.name}
+              span.caret
+            ul.dropdown-menu(aria-labelledby="dropdownUser")
+              li
+                a(href="/user/"+user.name) 
+                  span.glyphicon.glyphicon-user  个人中心
+              li
+                a(href="/user/"+user.name+"/setting")
+                  span.glyphicon.glyphicon-info-sign  信息设置
+              li
+                a(href="/user/"+user.name+"/logout")
+                  span.glyphicon.glyphicon-log-out  退出
+
+      form.navbar-form.navbar-right.hide(action="", method="get")
+        div.form-group(style="margin-right:5px")
+          input.form-control(type="text",placeholder="搜索")
+        button.btn.btn-default(type="submit")
+          span.glyphicon.glyphicon-search
