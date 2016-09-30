@@ -18,8 +18,8 @@ block main
           .form-group
             label.col-md-1.control-label(for="cate") 板块
             .col-md-11
-              select.form-control(id="cate", name="cate")
-                option 请选择
+              select.form-control(id="cate", name="cate", validate="required")
+                option(value='') 请选择
                 each val,key in cates
                   if key == topic.cate
                     option(value=key, selected=true)= val

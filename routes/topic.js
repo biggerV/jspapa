@@ -1,12 +1,11 @@
 var config = require('../config');
 var express = require('express');
-var mongodb = require('mongodb');
 var bodyParser = require('body-parser');
 var markdown = require('markdown').markdown;
 
+var M = require('../models');
+
 var router = express.Router();
-var MongoClient = mongodb.MongoClient;
-var ObjectId = mongodb.ObjectId;
 
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: false }));
@@ -20,64 +19,44 @@ router.get('/', function(req, res, next) {
 //显示主题详情
 router.get('/show/:id', function(req, res, next) {
   var id = req.params.id;
+  var data = {};
 
-  MongoClient.connect(config.mongodbUrl, function(err, db){
-    var topic = db.collection("topic");
-    var user = db.collection("user");
-    var comment = db.collection("comment");
-
-    topic.findOne({"_id": ObjectId(id)}, function(err, topicResult){
-
-      if(err){
-        console.log(err);
-      }else{
-        user.findOne({"_id": topicResult.user._id}, function(err, authorResult){
-          if(err){
-            console.log(err);
-          }else{
-            topicResult.content = markdown.toHTML(topicResult.content);
-
-            comment.find({"topicId": ObjectId(id)}).toArray(function(err, commentResult){
-              if(err){
-                console.log(err);
-              }else{
-                var l = commentResult.length;
-                for(var i = 0; i < l; i++){
-                  commentResult[i]["content"] = markdown.toHTML(commentResult[i]["content"]);
-                }
-
-                //作者的其他话题（取最近5条）
-                var topicIds = [];
-                for(var i=0; i<authorResult.topics.length; i++){
-                  topicIds.push(ObjectId(authorResult.topics[i]));
-                }
-                topic.find({"_id": {"$in": topicIds.slice(0,5)}}).sort({"created": -1}).toArray(function(err, authorTopics){
-                  if(err){
-                    console.log(err);
-                  }else{
-                    res.render('topic', {"topic": topicResult, "author": authorResult, "comment": commentResult, "cate": {"id": topicResult.cate, "name": config.cates[topicResult.cate]}, "authorTopics": authorTopics});
-
-                    //浏览主题计数器
-                    topic.updateOne({"_id": ObjectId(id)}, {"$inc": {"views": 1}}, function(err, result){
-                      if(err){
-                        console.log(err);
-                      }else{
-                        db.close();
-                      }
-                    });
-                  }
-                });
-              }
-            });
-            
-          }
-        });
-        
-      }
-      
-    });
-    
+  M.Topic.findOne({"_id": id}).exec()
+  .then(function(topicDoc){
+    topicDoc.content = markdown.toHTML(topicDoc.content);
+    return data.topic = topicDoc;
+  })
+  .then(function(topicDoc){
+    return M.User.findOne({"_id": topicDoc.user._id}).exec();
+  })
+  .then(function(authorDoc){
+    data.author = authorDoc;
+    return authorDoc.topics;
+  })
+  .then(function(authorTopicsIds){
+    return M.Topic.find({"_id": {"$in": authorTopicsIds}}, null, {'sort': {"created": -1}}).exec();
+  })
+  .then(function(authorTopics){
+    data.authorTopics = authorTopics;
+  })
+  .then(function(){
+    return M.Comment.find({"topicId": id}).exec();
+  })
+  .then(function(topicComments){
+    var l = topicComments.length;
+    for(var i = 0; i < l; i++){
+      topicComments[i]["content"] = markdown.toHTML(topicComments[i]["content"]);
+    }
+    data.comment = topicComments;
+  })
+  .then(function(){
+    data.cate = {"id": data.topic.cate, "name": config.cates[data.topic.cate]};
+    res.render('topic', data);
   });
+
+  //浏览主题计数器
+  M.Topic.updateVeiwsById(id);
+
 });
 
 
@@ -91,67 +70,48 @@ router.post('/show/:id', function(req, res, next) {
     return false;
   }
 
-  MongoClient.connect(config.mongodbUrl, function(err, db){
-    var comment = db.collection("comment");
-    var topic = db.collection("topic");
-    var user = db.collection("user");
-    var site = db.collection("site");
+  req.body.user = {
+    "_id": req.session.user._id,
+    "name": req.session.user.name
+  }
+  req.body.topicId = tid;
 
-    req.body.user = {
-      "_id": ObjectId(req.session.user._id),
-      "name": req.session.user.name
+  var setUserReplies = function(){
+    //最近评论过的10个主题，去重，保持10个
+    var tidIdx = req.session.user.replies.indexOf(tid);
+    if(tidIdx > -1){
+      req.session.user.replies.splice(tidIdx,1);
     }
-    req.body.topicId = ObjectId(tid);
-    req.body.created = new Date();
+    req.session.user.replies.push(tid);
+    if(req.session.user.replies.length > 10){
+      req.session.user.replies.shift(0);
+    }
+    return req.session.user.replies;
+  }
 
-    comment.insertOne(req.body, function(err, commentResult){
-      if(err){
-        console.log(err);
-      }else{
-        //最近评论过的10个主题，去重
-        var tidIdx = req.session.user.replies.indexOf(tid);
-        if(tidIdx > -1){
-          req.session.user.replies.splice(tidIdx,1);
-        }
-        req.session.user.replies.push(tid);
-        if(req.session.user.replies.length > 10){
-          req.session.user.replies.shift(0);
-        }
 
-        var newReplies = [];
-        for(var i=0; i<req.session.user.replies.length; i++){
-          newReplies.push(ObjectId(req.session.user.replies[i]));
-        }
+  M.Comment.create(req.body)
 
-        user.updateOne({"_id": req.body.user._id}, {"$set": {"replies": newReplies}}, function(err, userResult){
-          if(err){
-            console.log(err);
-          }else{
-            res.redirect('/topic/show/'+tid+'#'+commentResult.insertedId);
+  .then(function(commentDoc){
+    return commentDoc;
+  })
+  .then(function(commentDoc){
+    var userReplies = setUserReplies();
+    M.User.update({"_id": req.body.user._id}, {"$set": {"replies": userReplies}}).exec();
+    return commentDoc;
+  })
+  .then(function(commentDoc){
+    //此主题回帖数计数
+    M.Topic.updateCommentsById(tid);
 
-            //主题回帖数计数器
-            topic.updateOne({"_id": req.body.topicId}, {"$inc": {"comments": 1}}, function(err, topicResult){
-              if(err){
-                console.log(err);
-              }else{
-                //总回帖数计数器
-                site.updateOne({"name": "counter"}, {"$inc": {"comments": 1}}, function(err, siteResult){
-                  if(err){
-                    console.log(err);
-                  }else{
-                    db.close();
-                  }
-                });
-              }
-            });
+    //总回帖数计数
+    M.Site.updateCommets();
 
-          }
-        });
-      }
-    });
+    res.redirect('/topic/show/'+tid+'#'+commentDoc._id);
   });
-  
+
 });
+
 
 //新增主题页面
 router.get('/create', function(req, res, next) {
@@ -171,52 +131,36 @@ router.post('/create', function(req, res) {
   if(!req.session.user){
     res.redirect("/login");
     return false;
+  }else if(!req.body.cate || !req.body.title || !req.body.content){
+    res.render('topic-create', {"msg": "板块、标题、内容不能为空"});
+    return false;
   }
 
-  MongoClient.connect(config.mongodbUrl, function(err, db){
-    var topic = db.collection("topic");
-    var user = db.collection("user");
-    var site = db.collection("site");
+  req.body.user = {
+    "_id": req.session.user._id,
+    "name": req.session.user.name
+  }
 
-    if(!req.body.cate || !req.body.title || !req.body.content){
-      res.render('topic-create', {"msg": "板块、标题、内容不能为空"});
-      return false;
-    }
+  var addNewTopic = M.Topic.create(req.body);
 
-    req.body.user = {
-      "_id": ObjectId(req.session.user._id),
-      "name": req.session.user.name
-    }
-    req.body.created = new Date();
+  addNewTopic
+  .then(function(topicDoc){
+    return topicDoc;
+  })
+  .then(function(topicDoc){
+    var updateUserTopics = M.User.update({"_id": req.body.user._id}, {"$push": {"topics": {"$each": [topicDoc._id], "$slice": -10}}}).exec();
+    
+    updateUserTopics
+    .then(function(){
+      req.session.user.topics.push(topicDoc._id);
+      res.redirect('/topic/show/'+topicDoc._id);
 
-    topic.insertOne(req.body, function(err, topicResult){
-      if(err){
-        console.log(err);
-      }else{
-        user.updateOne({"_id": req.body.user._id}, {"$push": {"topics": {"$each": [topicResult.insertedId], "$slice": -10}}}, function(err, userResult){
-          if(err){
-            console.log(err);
-          }else{
-            req.session.user.topics.push(topicResult.insertedId);
-            res.redirect('/topic/show/'+topicResult.insertedId);
-
-
-            //发帖数计数器
-            site.updateOne({"name": "counter"}, {"$inc": {"topics": 1}}, function(err, siteResult){
-              if(err){
-                console.log(err);
-              }else{
-                db.close();
-              }
-            });
-
-          }
-        });
-      }
+      //发帖数计数器
+      M.Site.updateTopics();
       
     });
-    
   });
+
 });
 
 
@@ -229,18 +173,15 @@ router.get('/del/:id', function(req, res, next) {
     return false;
   }
 
-  MongoClient.connect(config.mongodbUrl, function(err, db){
-    var topic = db.collection("topic");
 
-    topic.remove({"_id": ObjectId(tid)}, function(err, result){
-      if(err){
-        console.log(err);
-      }else{
-        res.redirect("/");
-        db.close();
-      }
-    });
+  M.Topic.remove({"_id": tid}, function(err, result){
+    if(err){
+      console.log(err);
+    }else{
+      res.redirect("/");
+    }
   });
+
   
 });
 
@@ -255,18 +196,14 @@ router.get('/type/:id/:type', function(req, res, next) {
     return false;
   }
 
-  MongoClient.connect(config.mongodbUrl, function(err, db){
-    var topic = db.collection("topic");
-
-    topic.updateOne({"_id": ObjectId(tid)}, {"$set": {"type": type}}, function(err, result){
-      if(err){
-        console.log(err);
-      }else{
-        res.redirect("/");
-        db.close();
-      }
-    });
+  M.Topic.update({"_id": tid}, {"$set": {"type": type}}, function(err, result){
+    if(err){
+      console.log(err);
+    }else{
+      res.redirect("/");
+    }
   });
+
   
 });
 
@@ -279,21 +216,17 @@ router.get('/edit/:id', function(req, res, next) {
     return false;
   }
 
-  MongoClient.connect(config.mongodbUrl, function(err, db){
-    var topic = db.collection("topic");
-
-    topic.findOne({"_id": ObjectId(tid)}, function(err, result){
-      if(err){
-        console.log(err);
-      }else{
-        if(req.session.user._id !== result.user._id.toString()){
-          res.redirect("/login");
-          return false;
-        }
-        res.render("topic-create", {"topic": result, "isCreate": false});
-        db.close();
+  M.Topic.findOne({"_id": tid}, function(err, doc){
+    if(err){
+      res.render("error", {"msg": "不存在此主题！"});
+      return false;
+    }else{
+      if(req.session.user._id !== doc.user._id.toString()){
+        res.redirect("/login");
+        return false;
       }
-    });
+      res.render("topic-create", {"topic": doc, "isCreate": false});
+    }
   });
   
 });
@@ -308,35 +241,34 @@ router.post('/edit/:id', function(req, res, next) {
     return false;
   }
 
-  MongoClient.connect(config.mongodbUrl, function(err, db){
-    var topic = db.collection("topic");
 
-    topic.findOne({"_id": ObjectId(tid)}, function(err, result){
+  var findTopic = M.Topic.findOne({"_id": tid}).exec();
+
+  findTopic
+  .then(function(topicDoc){
+
+    if(req.session.user._id !== topicDoc.user._id.toString()){
+      res.redirect("/login");
+      return false;
+    }
+
+    return topicDoc;
+  })
+  .then(function(topicDoc){
+
+    topicDoc.title = req.body.title;
+    topicDoc.content = req.body.content;
+    topicDoc.cate = req.body.cate;
+
+    topicDoc.save(function(err, doc){
       if(err){
-        console.log(err);
+        res.render("error", {"msg": "保存出现错误！"});
       }else{
-        if(req.session.user._id !== result.user._id.toString()){
-          res.redirect("/login");
-          return false;
-        }
-
-        req.body.updated = new Date();
-
-        topic.updateOne({"_id": ObjectId(tid)}, {"$set": req.body}, function(err, result){
-          if(err){
-            console.log(err);
-          }else{
-            res.redirect('/topic/show/'+tid);
-            db.close();
-          }
-        });
-
+        res.redirect('/topic/show/'+tid);
       }
     });
-
-
   });
-  
+
 });
 
 module.exports = router;

@@ -1,13 +1,17 @@
 var config = require('./config');
 var express = require('express');
 var session = require('express-session');
-var url = require('url');
+var mongoose = require('mongoose');
 
+global.db = mongoose.createConnection(config.mongodbUrl);
+
+//routes
 var routes = require('./routes/index');
 var user = require('./routes/user');
 var topic = require('./routes/topic');
 
 var app = express();
+
 
 //模板引擎
 app.set('views', './views');

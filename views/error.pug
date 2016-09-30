@@ -1,0 +1,28 @@
+extends ./layout
+
+block head
+  title 发生错误 - #{siteName}
+
+
+block main
+  .panel.panel-default
+    .panel-heading
+      .panel-title 发生错误
+    .panel-body
+      if msg
+        if typeof msg === 'string'
+          .alert.alert-warning= msg
+        else
+          ol
+            each m in msg
+              li.alert.alert-warning= m.message
+      button.btn.btn-primary(type="button", onclick="history.back()") 返 回
+
+
+
+block sidebar
+  .panel.panel-default
+    .panel-heading
+      .panel-title 注意事项
+    .panel-body
+      div 您目前操作产生了错误，请检查！
