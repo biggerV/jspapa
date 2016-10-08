@@ -91,7 +91,6 @@ router.post('/show/:id', function(req, res, next) {
 
 
   M.Comment.create(req.body)
-
   .then(function(commentDoc){
     return commentDoc;
   })
@@ -141,25 +140,21 @@ router.post('/create', function(req, res) {
     "name": req.session.user.name
   }
 
-  var addNewTopic = M.Topic.create(req.body);
-
-  addNewTopic
+  M.Topic.create(req.body)
   .then(function(topicDoc){
     return topicDoc;
   })
   .then(function(topicDoc){
-    var updateUserTopics = M.User.update({"_id": req.body.user._id}, {"$push": {"topics": {"$each": [topicDoc._id], "$slice": -10}}}).exec();
-    
-    updateUserTopics
-    .then(function(){
-      req.session.user.topics.push(topicDoc._id);
-      res.redirect('/topic/show/'+topicDoc._id);
+    M.User.update({"_id": req.body.user._id}, {"$push": {"topics": {"$each": [topicDoc._id], "$slice": -10}}}).exec();
+    return topicDoc;
+  })
+  .then(function(topicDoc){
+    req.session.user.topics.push(topicDoc._id);
+    res.redirect('/topic/show/'+topicDoc._id);
 
-      //发帖数计数器
-      M.Site.updateTopics();
-      
-    });
-  });
+    //发帖数计数器
+    M.Site.updateTopics();
+  })
 
 });
 
@@ -174,12 +169,9 @@ router.get('/del/:id', function(req, res, next) {
   }
 
 
-  M.Topic.remove({"_id": tid}, function(err, result){
-    if(err){
-      console.log(err);
-    }else{
-      res.redirect("/");
-    }
+  M.Topic.remove({"_id": tid}).exec()
+  .then(function(){
+    res.redirect("/");
   });
 
   
@@ -196,12 +188,9 @@ router.get('/type/:id/:type', function(req, res, next) {
     return false;
   }
 
-  M.Topic.update({"_id": tid}, {"$set": {"type": type}}, function(err, result){
-    if(err){
-      console.log(err);
-    }else{
-      res.redirect("/");
-    }
+  M.Topic.update({"_id": tid}, {"$set": {"type": type}}).exec()
+  .then(function(){
+    res.redirect("/");
   });
 
   
@@ -242,9 +231,7 @@ router.post('/edit/:id', function(req, res, next) {
   }
 
 
-  var findTopic = M.Topic.findOne({"_id": tid}).exec();
-
-  findTopic
+  M.Topic.findOne({"_id": tid}).exec()
   .then(function(topicDoc){
 
     if(req.session.user._id !== topicDoc.user._id.toString()){

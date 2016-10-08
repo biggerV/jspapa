@@ -1,13 +1,11 @@
 var config = require('../config');
 var express = require('express');
-var mongodb = require('mongodb');
 var multer  = require('multer');
 var crypto = require('crypto');
 
-var router = express.Router();
+var M = require('../models');
 
-var MongoClient = mongodb.MongoClient;
-var ObjectId = mongodb.ObjectId;
+var router = express.Router();
 
 var upload = multer({
   storage: multer.diskStorage({
@@ -41,57 +39,38 @@ router.use(function(req, res, next){
 //用户个人中心首页
 router.get('/:name', function(req, res, next) {
   var uname = req.params.name;
+  var data = {};
 
-  MongoClient.connect(config.mongodbUrl, function(err, db) {
-    var user = db.collection('user');
-    var topic = db.collection('topic');
-
-    user.findOne({"name": uname}, function(err, userResult){
-      if(err){
-        console.log(err);
-      }else{
-
-        var topicIds = [];
-        var replyIds = [];
-
-        for(var i=0; i<userResult.topics.length; i++){
-          topicIds.push(ObjectId(userResult.topics[i]));
+  M.User.findOne({"name": uname}).exec()
+  .then(function(userDoc){
+    data.iuser = userDoc;
+  })
+  .then(function(){
+    return M.Topic.find({"_id": {"$in": data.iuser.topics}}).sort({"created": -1}).exec();
+  })
+  .then(function(topicsDoc){
+    data.topics = topicsDoc;
+  })
+  .then(function(){
+    return M.Topic.find({"_id": {"$in": data.iuser.replies}}).exec();
+  })
+  .then(function(repliesDoc){
+    //重新按评论顺序排序
+    var newrepliesDoc = [];
+    var rlen = repliesDoc.length;
+    for(var i=0; i<rlen; i++){
+      for(var j=0; j<rlen; j++){
+        if(repliesDoc[j]["_id"].toString() === data.iuser.replies[i].toString()){
+          newrepliesDoc.push(repliesDoc[j]);
         }
-
-        for(var i=0; i<userResult.replies.length; i++){
-          replyIds.push(ObjectId(userResult.replies[i]));
-        }
-
-        topic.find({"_id": {"$in": topicIds}}).sort({"created": -1}).toArray(function(err, topicsResult){
-          if(err){
-            console.log(err);
-          }else{
-            topic.find({"_id": {"$in": replyIds}}).toArray(function(err, repliesResult){
-              if(err){
-                console.log(err);
-              }else{
-                //重新按评论顺序排序
-                var newRepliesResult = [];
-                var rlen = repliesResult.length;
-                for(var i=0; i<rlen; i++){
-                  for(var j=0; j<rlen; j++){
-                    if(repliesResult[j]["_id"].toString() === replyIds[i].toString()){
-                      newRepliesResult.push(repliesResult[j]);
-                    }
-                  }
-                }
-                
-                res.render('user', {"iuser": userResult, "topics": topicsResult, "replies": newRepliesResult.reverse()});
-                db.close();
-              }
-            });
-          }
-        });
-
       }
-    });
-
+    }
+    data.replies = newrepliesDoc.reverse();
+  })
+  .then(function(){
+    res.render('user', data);
   });
+
 });
 
 //用户主题列表
@@ -100,29 +79,25 @@ router.get('/:name/topics', function(req, res, next) {
   var cur = req.query.page ? Number(req.query.page) : 1;
   var limit = 10;
   var skip = (cur - 1) * limit;
-  var total = 0;
+  var data = {};
 
-  MongoClient.connect(config.mongodbUrl, function(err, db) {
-    var topic = db.collection('topic');
-    var user = db.collection('user');
 
-    user.findOne({"name": uname}, function(err, userResult){
-      if(err){
-        console.log(err);
-      }else{
-
-        topic.count({"user._id": userResult._id}, function(err, count){
-          total = Math.ceil(count/limit);
-          topic.find({"user._id": userResult._id}).sort({"created": -1}).skip(skip).limit(limit).toArray(function(err, result){
-            res.render('user-topics', {"topics": result, "page": {"total": total, "count": count, "cur": cur}, "iuser": userResult});
-            db.close();
-          });
-        });
-
-      }
-    });
-
+  M.User.findOne({"name": uname}).exec()
+  .then(function(userDoc){
+    data.iuser = userDoc
+    return M.Topic.count({"user._id": userDoc._id}).exec();
+  })
+  .then(function(count){
+    data.page = {"total": Math.ceil(count/limit), "count": count, "cur": cur};
+  })
+  .then(function(){
+    return M.Topic.find({"user._id": data.iuser._id}).sort({"created": -1}).skip(skip).limit(limit).exec();
+  })
+  .then(function(userTopics){
+    data.topics = userTopics;
+    res.render('user-topics', data);
   });
+
   
 });
 
@@ -131,42 +106,38 @@ router.get('/:name/topics', function(req, res, next) {
 router.get('/:name/setting', function(req, res, next) {
   var msg = req.query.stat==="true" ? "保存成功" : "";
 
-  MongoClient.connect(config.mongodbUrl, function(err, db) {
-    var user = db.collection('user');
-    user.findOne({"_id": ObjectId(req.session.user._id)}, function(err, result){
-      if(err){
-        console.log(err);
-      }else{
-        req.session.user = result;
-        res.render("user-setting", {"me": result, "msg": msg});
-        db.close();
-      }
+    M.User.findOne({"_id": req.session.user._id}).exec()
+    .then(function(doc){
+      req.session.user = doc;
+      res.render("user-setting", {"me": doc, "msg": msg});
     });
-  });
   
 });
 
 //信息设置保存
 router.post('/:name/setting', upload.single('avatar'), function(req, res, next) {
-  MongoClient.connect(config.mongodbUrl, function(err, db) {
-    var user = db.collection('user');
 
-    if(!req.body.pwd){
-      delete req.body.pwd;
-    }else{
-      req.body.pwd = crypto.createHash('md5').update(req.body.pwd).digest('hex');
+  M.User.findOne({"_id": req.session.user._id}).exec()
+  .then(function(userDoc){
+    if(req.body.pwd){
+      userDoc.pwd = crypto.createHash('md5').update(req.body.pwd).digest('hex');
     }
-
     if(req.file){
-      req.body.avatar = req.file.filename;
+      userDoc.avatar = req.file.filename;
     }
+    userDoc.site = req.body.site;
+    userDoc.city = req.body.city;
+    userDoc.weibo = req.body.weibo;
+    userDoc.wechat = req.body.wechat;
+    userDoc.github = req.body.github;
+    userDoc.sign = req.body.sign;
 
-    user.updateOne({"_id": ObjectId(req.session.user._id)}, {"$set": req.body}, function(err, result){
+    userDoc.save(function(err){
       if(err){
-        console.log(err);
+        console.log(err)
+        res.render('error', {"msg": "保存失败，请检查！"});
       }else{
         res.redirect("/user/"+req.session.user.name+"/setting?stat=true");
-        db.close();
       }
     });
 

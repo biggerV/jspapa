@@ -25,7 +25,6 @@ router.get('/', function(req, res, next){
   };
 
   M.Topic.find(type, null, {'skip': skip, 'limit': limit, 'sort': {'created': -1}}).exec()
-
   .then(function(topicDocs){
     data.topics = topicDocs;
   })
@@ -68,7 +67,6 @@ router.get('/cate/:id', function(req, res, next){
   }
 
   M.Topic.find(type, null, {'skip': skip, 'limit': limit, 'sort': {'created': -1}}).exec()
-
   .then(function(topicDocs){
     data.topics = topicDocs;
   })
@@ -143,6 +141,7 @@ router.post('/reg', function(req, res){
       }
       res.render("reg", {"msg": msg});
     }else{
+      req.body.pwd = crypto.createHash('md5').update(req.body.pwd).digest('hex');
       M.User.create(req.body, function(err){
         if(err){
           console.log(err);

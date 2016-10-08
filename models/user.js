@@ -1,6 +1,4 @@
 var mongoose = require('mongoose');
-var crypto = require('crypto');
-
 var ObjectId = mongoose.Schema.Types.ObjectId;
 
 var userSchema = new mongoose.Schema({
@@ -22,11 +20,11 @@ var userSchema = new mongoose.Schema({
     'type': String,
     'validate': {
       'validator': function(v){
-        if(v.length > 0){
-          return /^[^\s]{6,20}$/.test(v);
+        if(v && v.length > 0){
+          return /^[^\s]{6,32}$/.test(v);
         }
       },
-      'message': '密码长度为6-20'
+      'message': '密码长度为6-32'
     },
     'trim': true
   },
@@ -100,10 +98,5 @@ var userSchema = new mongoose.Schema({
   'collection': 'user'
 });
 
-
-userSchema.pre('save', function(next){
-  this.pwd = crypto.createHash('md5').update(this.pwd).digest('hex');
-  next();
-});
 
 module.exports = db.model('User', userSchema);
