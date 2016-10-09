@@ -241,9 +241,5 @@ module.exports = {
     .catch(function(err){
       console.log(err);
     });
-  },
-
-  home: function(req, res, next) {
-    res.redirect(301, "/");
   }
 }

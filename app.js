@@ -6,7 +6,7 @@ var mongoose = require('mongoose');
 global.db = mongoose.createConnection(config.mongodbUrl);
 
 //routes
-var routes = require('./routes/index');
+var home = require('./routes/index');
 var user = require('./routes/user');
 var topic = require('./routes/topic');
 
@@ -36,7 +36,7 @@ app.use(function(req, res, next){
 });
 
 //routes
-app.use('/', routes);
+app.use('/', home);
 app.use('/user', user);
 app.use('/topic', topic);
 
