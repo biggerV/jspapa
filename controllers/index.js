@@ -159,7 +159,7 @@ module.exports = {
         //发送重置密码邮件
         var tempwd = crypto.createHash('md5').update(Math.random().toString()).digest('hex').substr(0,6);
 
-        doc.pwd = tempwd;
+        doc.pwd = crypto.createHash('md5').update(tempwd).digest('hex');
 
         doc.save(function(err, result){
           if(err){
