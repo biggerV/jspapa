@@ -21,10 +21,11 @@ block main
               select.form-control(id="cate", name="cate", validate="required")
                 option(value='') 请选择
                 each val,key in cates
-                  if key == topic.cate
-                    option(value=key, selected=true)= val
-                  else
-                    option(value=key)= val
+                  if key != "all"
+                    if key == topic.cate
+                      option(value=key, selected=true)= val
+                    else
+                      option(value=key)= val
           .form-group
             label.col-md-1.control-label(for="title") 标题
             .col-md-11
