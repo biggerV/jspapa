@@ -1,0 +1,42 @@
+extends ./layout
+
+block head
+  title 消息详情 - 个人中心 - #{siteName}
+
+
+block main
+  //-面包屑导航
+  ol.breadcrumb
+    li
+      a(href="/", title="首页") 
+        span.glyphicon.glyphicon-home 
+    li
+      a(href="/user/"+user.name) 个人中心
+    li
+      a(href="/user/"+user.name+"/message") 我的消息
+    li.active 查看消息
+
+  .panel.panel-default.user-message-show
+    .panel-heading
+      .panel-title.sender
+        a.avatar(href="/user/"+message.sender.name)
+          img.pull-left.avatar-img(src="/avatar/avatar-"+message.sender.name, onerror="this.src='/avatar/"+message.sender.name.slice(0,1).toUpperCase()+".gif'")
+          span  #{message.sender.name}
+        br
+        span.info 发送时间 #{message.created.getFullYear()}/#{message.created.getMonth()+1}/#{message.created.getDate()} #{message.created.getHours()}:#{message.created.getMinutes()}
+    .panel-body
+      if message.type === "point"
+        div #{message.content.reason} #{message.content.point} 积分
+      else
+        div !{message.content}
+  button.btn.btn-primary(type="button", onclick="history.back()") 返 回
+
+
+
+block sidebar
+  include mod-user-card
+  +usercard("个人信息", user)
+
+  include mod-topic-create-btn
+
+  include mod-topic-warning

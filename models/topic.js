@@ -1,5 +1,15 @@
+var config = require('../config');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Schema.Types.ObjectId;
+
+var getCates = function(){
+  var cates = [];
+  for(cate in config.cates){
+    cates.push(cate);
+  }
+  cates.shift(0);
+  return cates;
+}
 
 var topicSchema = new mongoose.Schema({
   'title': {
@@ -18,6 +28,7 @@ var topicSchema = new mongoose.Schema({
 
   'cate': {
     'type': String,
+    'enum': getCates(),
     'trim': true
   },
   
@@ -31,13 +42,19 @@ var topicSchema = new mongoose.Schema({
   },
   'type': {
     'type': String,
+    'enum': ['good', 'top'],
     'trim': true
   },
   'created': {
-    'type': Date,
-    'default': new Date()
+    'type': Date
   },
   'updated': {
+    'type': Date
+  },
+  'replied': {
+    'type': Date
+  },
+  'sorted': {
     'type': Date
   }
 }, {
@@ -59,7 +76,30 @@ topicSchema.static({
         console.log(err);
       }
     });
+  },
+
+  updateRepliedById: function(id){
+    this.update({"_id": id}, {'$set': {'replied': new Date()}}, function(err){
+      if(err){
+        console.log(err);
+      }
+    });
+  },
+
+  updateSortedById: function(id, type){
+    var time;
+    if(type === "top"){
+      time = new Date(2020, 01, 01);
+    }else{
+      time = new Date();
+    }
+    this.update({"_id": id}, {'$set': {'sorted': time}}, function(err){
+      if(err){
+        console.log(err);
+      }
+    });
   }
+
 });
 
 topicSchema.pre('save', function(next){

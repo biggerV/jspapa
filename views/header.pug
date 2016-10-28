@@ -23,11 +23,18 @@ header.navbar.navbar-default.navbar-static-top
         ul.nav.navbar-nav.navbar-right
           li.dropdown
             a.dropdown-toggle#dropdownUser(href="javascript:;", data-toggle="dropdown", aria-haspopup="true", aria-expanded="true") #{user.name}
+              if user.message > 0
+                code (#{user.message})
               span.caret
             ul.dropdown-menu(aria-labelledby="dropdownUser")
               li
                 a(href="/user/"+user.name) 
                   span.glyphicon.glyphicon-user  个人中心
+              li
+                a(href="/user/"+user.name+"/message")
+                  span.glyphicon.glyphicon-envelope  未读消息
+                    if user.message > 0
+                      code (#{user.message})
               li
                 a(href="/user/"+user.name+"/setting")
                   span.glyphicon.glyphicon-info-sign  信息设置
@@ -36,7 +43,7 @@ header.navbar.navbar-default.navbar-static-top
                   span.glyphicon.glyphicon-log-out  退出
 
       form.navbar-form.navbar-right.hide(action="", method="get")
-        div.form-group(style="margin-right:5px")
+        div.form-group
           input.form-control(type="text",placeholder="搜索")
         button.btn.btn-default(type="submit")
           span.glyphicon.glyphicon-search

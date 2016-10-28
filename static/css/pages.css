@@ -1,0 +1,111 @@
+/*header*/
+header .navbar-form .form-group{
+  margin-right:5px;
+}
+
+/*footer*/
+footer.container{
+  font-size:12px;
+  color:#666;
+}
+
+/*mod-topics-list*/
+.mod-topics-list .list-group-item{
+  line-height:30px;
+}
+.mod-topics-list .avatar{
+  margin-right:10px;
+}
+.mod-topics-list .avatar img{
+  width:30px;
+  height:30px;
+  border-radius:15px;
+}
+.mod-topics-list .info,
+.mod-topics-list .cate{
+  margin-right:10px;
+}
+
+/*mod-user-card*/
+.mod-user-card .avatar-img{
+  width:50px;
+  height:50px;
+  margin-right:10px;
+}
+.mod-user-card .crown-icon{
+  width:14px;
+}
+.mod-user-card .msg-btn{
+  margin-top:5px;
+}
+
+/*topic-create*/
+.topic-create .sub-btn .btn{
+  margin-right:10px;
+}
+
+/*topic*/
+.topic .panel-body img{
+  max-width:100%;
+}
+.topic .topic-title{
+  font-size:24px;
+}
+.topic .topic-info{
+  font-size:12px;
+  color:#888;
+}
+.topic .topic-footer .btn{
+  margin-right:5px;
+}
+
+/*comments-list*/
+.comments-list .avatar{
+  display:block;
+  width:30px;
+}
+.comments-list .avatar img{
+  width:30px;
+  height:30px;
+}
+.comments-list .floor{
+  color:#999;
+}
+
+/*user-message*/
+.user-message .avatar{
+  margin-right:5px;
+}
+.user-message .avatar-img{
+  width:30px;
+  height:30px;
+  border-radius:15px;
+  margin-right:5px;
+}
+
+/*user-message-show*/
+.user-message-show .sender .avatar{
+  margin-right:10px;
+}
+.user-message-show .sender .avatar-img{
+  width:40px;
+  height:40px;
+  margin-right:5px
+}
+.user-message-show .sender .info{
+  font-size:12px;
+  color:#888;
+}
+
+/*user-setting*/
+.user-setting .picker-show{
+  vertical-align:top;
+}
+.user-setting .picker-show img{
+  width:18px;
+  height:18px;
+}
+.user-setting .picker-text{
+  font-size: 14px;
+  padding-left: 5px;
+}

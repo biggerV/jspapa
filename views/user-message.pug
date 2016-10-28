@@ -1,0 +1,90 @@
+extends ./layout
+
+block head
+  title 我的消息 - 个人中心 - #{siteName}
+
+
+block main
+  //-面包屑导航
+  ol.breadcrumb
+    li
+      a(href="/", title="首页") 
+        span.glyphicon.glyphicon-home 
+    li
+      a(href="/user/"+user.name) 个人中心
+    li.active 我的消息
+
+  .panel.panel-default.user-message
+    .panel-heading
+      .panel-title 我的消息
+    .panel-body
+      if messages && messages.length
+        ul.list-group
+          each item in messages
+            li.list-group-item.clearfix
+              .pull-right
+                if item.read
+                  span.btn.btn-info.btn-xs 已读
+                else
+                  span.btn.btn-danger.btn-xs 未读
+              .info
+                a.avatar(href="/user/"+item.sender.name)
+                  img.pull-left.avatar-img(src="/avatar/avatar-"+item.sender.name, onerror="this.src='/avatar/"+item.sender.name.slice(0,1).toUpperCase()+".gif'")
+                  span #{item.sender.name}
+                span.small #{item.created.getFullYear()}/#{item.created.getMonth()+1}/#{item.created.getDate()} #{item.created.getHours()}:#{item.created.getMinutes()} 
+                case item.type
+                  when "comment"
+                    span 评论了您的话题
+                    strong  #{item.content.title}
+                    br
+                    em #{item.content.comment.substr(0,30)}……
+                    a(href="/user/"+user.name+"/message/"+item._id+"?tid="+item.content.topicId+"&cid="+item.content.commentId)
+                      span (查看)
+                  when "reply"
+                    span 在评论话题
+                    strong  #{item.content.title} 
+                    span 时
+                    code @
+                    span 了你
+                    br
+                    em #{item.content.comment.substr(0,30)}……
+                    a(href="/user/"+user.name+"/message/"+item._id+"?tid="+item.content.topicId+"&cid="+item.content.commentId)
+                      span (查看)
+                  when "sys"
+                    code 系统消息
+                    br
+                    em #{item.content.substr(0,30)}……
+                    a(href="/user/"+user.name+"/message/"+item._id) (查看)
+                  when "private"
+                    code 私信
+                    br
+                    em #{item.content.substr(0,30)}……
+                    a(href="/user/"+user.name+"/message/"+item._id) (查看)
+                  when "point"
+                    code 积分 #{item.content.point>0 ? '+'+item.content.point : item.content.point}
+                    br
+                    em 原因：您 
+                      strong #{item.content.reason} 
+                    em #{item.content.title}
+                    a(href="/user/"+user.name+"/message/"+item._id) (查看)
+      else
+        .alert.alert-warning 没有任何消息
+
+  include mod-pagination
+  +pagination(page)
+
+
+block sidebar
+  include mod-user-card
+  +usercard("个人信息", user)
+
+  include mod-topic-create-btn
+
+  include mod-topic-warning
+
+
+block foot
+  script.
+    $(function () {
+
+    });

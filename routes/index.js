@@ -8,10 +8,10 @@ router.use(bodyParser.urlencoded({ extended: false }));
 
 
 //首页-全部主题
-router.get('/', C.getTopics);
+router.get('/', C.listTopics);
 
 //首页-栏目
-router.get('/cate/:id', C.getTopics);
+router.get('/cate/:id', C.listTopics);
 
 //登陆页面
 router.get('/login', C.login);

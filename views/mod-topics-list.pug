@@ -1,21 +1,24 @@
 mixin topicList(topics, avatar)
   if topics && topics.length
-    ul.list-group
+    ul.list-group.mod-topics-list
       each item in topics
-        li.list-group-item(id=item._id)
-          h4.clearfix(style="line-height:30px;")
-            if avatar
-              a.pull-left(href="/user/"+item.user.name, style="margin-right:10px;")
-                img(src="/uploads/avatar/avatar-"+item.user.name || "/images/avatar.png", style="width:30px;height:30px")
-            .pull-left(style="margin-right:10px;")
-              a(href="/cate/"+item.cate)
+        li.list-group-item.clearfix
+          if avatar
+            a.pull-left.avatar(href="/user/"+item.user.name)
+              img(src="/avatar/avatar-"+item.user.name, onerror="this.src='/avatar/"+item.user.name.slice(0,1).toUpperCase()+".gif'")
+          .pull-right.info
+            span.btn.btn-default.btn-xs #{item.views || 0}浏览 #{item.comments || 0}回复
+          if cate && cate.id === 'all'
+            .pull-left.cate
+              a(href="/cate/"+item.cate, style="margin-left:5px")
                 span.btn.btn-default.btn-xs=cates[item.cate]
-            .pull-left
-              a(href="/topic/show/"+item._id)
-                span.name #{item.title}
-                if item.type=="good"
-                  span.glyphicon.glyphicon-flag(title="精华")
-            .pull-right(style="margin-right:10px;")
-              span.btn.btn-default.btn-xs #{item.views || 0}浏览 #{item.comments || 0}回复
+          .pull-left
+            a(href="/topic/show/"+item._id)
+              span.name #{item.title} 
+            if item.type=="good"
+              span.btn.btn-success.btn-xs 精华
+            if item.type=="top"
+              span.btn.btn-warning.btn-xs 置顶
+
   else
     .alert.alert-warning 没有任何话题

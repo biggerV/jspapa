@@ -17,8 +17,7 @@ var commentSchema = new mongoose.Schema({
   },
 
   'created': {
-    'type': Date,
-    'default': new Date()
+    'type': Date
   },
   'updated': {
     'type': Date

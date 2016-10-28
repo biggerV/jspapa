@@ -1,0 +1,39 @@
+extends ./layout
+
+block head
+  title 发私信 - 个人中心 - #{siteName}
+  script(src="/js/validate.js")
+
+
+block main
+  //-面包屑导航
+  ol.breadcrumb
+    li
+      a(href="/", title="首页") 
+        span.glyphicon.glyphicon-home 
+    li
+      a(href="/user/"+user.name) 个人中心
+    li.active 发私信
+
+  .panel.panel-default
+    .panel-heading
+      .panel-title 给 #{addresseeName} 发私信
+    .panel-body
+      if msg
+        .alert.alert-success= msg
+      form.validate(action="", method="post")
+        .form-group
+          textarea.form-control(id="content", name="content", rows="10", validate="required")
+        .form-group
+          button.btn.btn-primary(type="submit") 发 送
+
+
+block sidebar
+
+  include mod-topic-warning
+
+
+block foot
+  script.
+    $(function () {
+      $("form.validate").formValidate();

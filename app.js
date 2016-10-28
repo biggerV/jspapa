@@ -19,9 +19,10 @@ app.set('view engine', 'pug');
 
 //静态文件
 app.use(express.static('static'));
+app.use(express.static(config.uploadPath));
 
 app.use(session({
-  secret: 'jspapa',
+  secret: '',
   cookie: {maxAge: 3600000},
   rolling: true,
   resave: true,

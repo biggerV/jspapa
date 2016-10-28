@@ -2,12 +2,15 @@ extends ./layout
 
 block head
   title 发布新话题 - #{siteName}
+  link(href="/webuploader/webuploader.css" rel="stylesheet")
   script(src="/js/markdown.js")
   script(src="/js/validate.js")
+  script(src="/webuploader/webuploader.js")
+  script(src="/webuploader/upload.js")
 
 
 block main
-  .panel.panel-default
+  .panel.panel-default.topic-create
     .panel-heading
       .panel-title= isCreate ? "发布新话题" : "编辑话题"
     .panel-body
@@ -33,12 +36,16 @@ block main
         .form-group
           //-内容输入框
           .well.well-sm Tips：内容书写支持 Markdown语法
+          div#picker
+            span.glyphicon.glyphicon-picture(title="上传图片")
+            span#pickerTip
           textarea#reply-input.form-control(name="content", rows="20", placeholder="请输入内容...", validate="required")= topic.content
-        .form-group
-          button.btn.btn-primary(type="submit", style="margin-right:10px")
-            span.glyphicon.glyphicon-ok
-            span  提交
-          button.btn.btn-default(type="reset") 重置
+        .form-group.clearfix
+          div.sub-btn.pull-left
+            button.btn.btn-primary(type="submit")
+              span.glyphicon.glyphicon-ok
+              span  提交
+            button.btn.btn-default(type="reset") 重置
           button#reply-preview-btn.btn.btn-success.pull-right(type="button") 预览
         p
         .row
@@ -72,4 +79,9 @@ block foot
   script.
     $(function () {
       $("form.validate").formValidate();
+
+      uploader("/topic", function(file, response){
+        var $replyInput = $("#reply-input");
+        $replyInput.val($replyInput.val()+"!["+file.name+"]("+response.pic+")");
+      });
     });

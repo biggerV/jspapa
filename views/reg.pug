@@ -16,13 +16,13 @@ block main
         .col-md-5
           .form-group
             label(for="name") 用户名
-            input.form-control(type="text", id="name", name="name", validate="required,username")
+            input.form-control(type="text", id="name", name="name", placeholder="6-20个字符,字母开头", validate="required,username")
           .form-group
             label(for="pwd") 密码
-            input.form-control(type="password", id="pwd", name="pwd", validate="required,password")
+            input.form-control(type="password", id="pwd", name="pwd", placeholder="请输入密码", validate="required,password")
           .form-group
             label(for="email") 邮箱地址
-            input.form-control(type="text", id="email", name="email", validate="required,email")
+            input.form-control(type="text", id="email", name="email", placeholder="必填,用于找回密码", validate="required,email")
           .form-group
             button.btn.btn-primary(type="submit") 注 册
         .col-md-7

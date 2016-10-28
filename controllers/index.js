@@ -6,7 +6,7 @@ var M = require('../models');
 
 module.exports = {
 
-  getTopics: function(req, res, next){
+  listTopics: function(req, res, next){
     
     var cid = req.params.id;
 
@@ -31,7 +31,7 @@ module.exports = {
       'type': req.query.type
     };
 
-    M.Topic.find(query, null, {'skip': skip, 'limit': limit, 'sort': {'created': -1}}).exec()
+    M.Topic.find(query, null, {'skip': skip, 'limit': limit, 'sort': {"sorted": -1}}).exec()
     .then(function(topicDocs){
       data.topics = topicDocs;
     })
@@ -91,6 +91,23 @@ module.exports = {
       return false;
     }
 
+    //发送邮件
+    function sendMail(){
+      var transporter = nodemailer.createTransport('smtps://'+config.email.user+'%40'+config.email.host+':'+config.email.pwd+'@smtp.'+config.email.smtp);
+      var mailOptions = {
+        from: '"JSpapa.com" <'+config.email.user+'@'+config.email.host+'>',
+        to: req.body.email,
+        subject: '恭喜您，注册账号成功！--JSpapa.com',
+        text: '注册账号成功',
+        html: '<p>尊敬的 <b>'+req.body.name+'</b>：</p><p>您已经注册账号成功！欢迎您加入JSpapa.com。</p><p>JSpapa是专业的JS开发者社区，这里聚集了大量的JS开发者，或者对JS有兴趣的开发人员。</p><p>您可以在这里提问、解答问题、发表技术研究、提出技术畅想、结交技术伙伴……</p><p>我们真诚的邀请您来共同维护和发展这个朝气蓬勃的社区。</p><p>祝好。</p><p>--邮件发自<a href="http://jspapa.com"><b>JSpapa.com</b></a></p>' // html body
+      };
+      transporter.sendMail(mailOptions, function(error, info){
+        if(error){
+          res.render("error", {"msg": error});
+        }
+      });
+    }
+
     M.User.findOne({"$or": [{"name": req.body.name}, {"email": req.body.email}]}).exec()
     .then(function(result){
       if(result){
@@ -103,14 +120,40 @@ module.exports = {
         res.render("reg", {"msg": msg});
       }else{
         req.body.pwd = crypto.createHash('md5').update(req.body.pwd).digest('hex');
-        M.User.create(req.body, function(err){
+        req.body.created = new Date();
+        M.User.create(req.body, function(err, doc){
           if(err){
             console.log(err);
           }else{
+
+            sendMail();
+
             res.redirect("/regsuc");
 
             //用户数计数
             M.Site.updateUsers();
+
+            //注册成功积分变动
+            M.User.updatePointById(doc._id, "register");
+
+            //注册者消息+1
+            M.User.updateMessageById(doc._id);
+
+            //给注册者发送积分变动消息
+            M.Message.create({
+              sender: {
+                "name": "admin"
+              },
+              addressee: {
+                "_id": doc._id,
+                "name": doc.name
+              },
+              content: {
+                point: config.pointRules.register,
+                reason: "注册成功"
+              },
+              type: "point"
+            });
           }
         });
       }
@@ -136,7 +179,7 @@ module.exports = {
 
     //发送邮件
     function sendMail(email, tempwd, cb){
-      var transporter = nodemailer.createTransport('smtps://'+config.email.user+'%40qq.com:'+config.email.pwd+'@smtp.'+config.email.host);
+      var transporter = nodemailer.createTransport('smtps://'+config.email.user+'%40'+config.email.host+':'+config.email.pwd+'@smtp.'+config.email.smtp);
       var mailOptions = {
         from: '"JSpapa.com" <'+config.email.user+'@'+config.email.host+'>',
         to: email,
@@ -146,7 +189,6 @@ module.exports = {
       };
       transporter.sendMail(mailOptions, function(error, info){
         if(error){
-          return console.log(error);
           res.render("error", {"msg": error});
         }
         cb();

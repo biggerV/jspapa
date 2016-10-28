@@ -2,8 +2,11 @@ extends ./layout
 
 block head
   title #{topic.title} - #{siteName}
+  link(href="/webuploader/webuploader.css" rel="stylesheet")
+  script(src="/js/validate.js")
   script(src="/js/markdown.js")
-
+  script(src="/webuploader/webuploader.js")
+  script(src="/webuploader/upload.js")
 
 
 
@@ -18,41 +21,51 @@ block main
     li.active 主题
 
   //-主题正文
-  .panel.panel-default
+  .panel.panel-default.topic
     .panel-heading
-      h3.panel-title(style="font-size:24px")=topic.title
+      h3.panel-title.topic-title=topic.title
         if topic.type === "good"
-          span.glyphicon.glyphicon-flag
-      div(style="font-size:12px;color:#888") 发布于 #{topic.created.getFullYear()}/#{topic.created.getMonth()}/#{topic.created.getDate()} #{topic.created.getHours()}:#{topic.created.getMinutes()} &nbsp; #{topic.views || 0}浏览 &nbsp; #{topic.comments || 0}回复
+          span.btn.btn-success.btn-xs 精华
+      div.topic-info 发布于 #{topic.created.getFullYear()}/#{topic.created.getMonth()+1}/#{topic.created.getDate()} #{topic.created.getHours()}:#{topic.created.getMinutes()} &nbsp; #{topic.views || 0}浏览 &nbsp; #{topic.comments || 0}回复
     .panel-body!= topic.content
-    .panel-footer.text-right
-      if user && user.name == author.name
-        a.btn.btn-default.btn-sm(href="/topic/edit/"+topic._id, title="编辑", data-toggle="tooltip", style="margin-right:5px")
+    .panel-footer.text-right.topic-footer
+      if user && user.name === author.name
+        a.btn.btn-default.btn-sm(href="/topic/edit/"+topic._id, title="编辑", data-toggle="tooltip")
           span.glyphicon.glyphicon-edit
-      if user && user.name == "admin"
-        a.btn.btn-default.btn-sm(href="/topic/type/"+topic._id+"/good", title="设为精华", data-toggle="tooltip", style="margin-right:5px")
+            
+      if user && user.name === "admin"
+        a.btn.btn-default.btn-sm(href="/topic/type/"+topic._id+"/top"+(topic.type=='top' ? '?cancel=true' : ''), title=(topic.type=='top' ? '取消置顶' : '设为置顶'), data-toggle="tooltip")
+          span.glyphicon.glyphicon-arrow-up
+        
+      if user && user.level >= 90
+        a.btn.btn-default.btn-sm(href="/topic/type/"+topic._id+"/good"+(topic.type=='good' ? '?cancel=true' : ''), title=(topic.type=='good' ? '取消精华' : '设为精华'), data-toggle="tooltip")
           span.glyphicon.glyphicon-flag
-        a.btn.btn-default.btn-sm(href="/topic/del/"+topic._id, title="删除", data-toggle="tooltip", style="margin-right:5px")
+        a.btn.btn-default.btn-sm(href="/topic/del/"+topic._id, title="删除", data-toggle="tooltip")
           span.glyphicon.glyphicon-remove
       a.btn.btn-default.btn-sm(href="#comments", title="回复", data-toggle="tooltip")
         span.glyphicon.glyphicon-comment
 
   //-评论列表
   if comment.length
-    .panel.panel-default#comments
+    .panel.panel-default.comments-list#comments
       .panel-heading
         .panel-title
           span.glyphicon.glyphicon-comment
           span  回复
       .panel-body
         ul.media-list
+          -var cIndex = 0;
           each comm in comment
             li.media(id=comm._id)
               .media-left
-                a(href="/user/"+comm.user.name)
-                  img.media-object(src="/uploads/avatar/avatar-"+comm.user.name || "/images/avatar.png", style="width:30px;height:30px;")
+                a.avatar(href="/user/"+comm.user.name)
+                  img.media-object(src="/avatar/avatar-"+comm.user.name, onerror="this.src='/avatar/"+comm.user.name.slice(0,1).toUpperCase()+".gif'")
               .media-body
-                h4.media-heading
+                h5.media-heading.clearfix
+                  .pull-right
+                    span.floor #{++cIndex} 楼 
+                    a.reply-at(href="#reply-input", data-name=comm.user.name, title="回复", data-toggle="tooltip")
+                      span.glyphicon.glyphicon-share-alt
                   a(href="/user/"+comm.user.name)= comm.user.name
                   span.small  #{comm.created.getFullYear()}/#{comm.created.getMonth()}/#{comm.created.getDate()} #{comm.created.getHours()}:#{comm.created.getMinutes()}
                 div.content!= comm.content
@@ -66,12 +79,14 @@ block main
           span.glyphicon.glyphicon-plus
           span  添加新回复
       .panel-body
-        form(method="post", action="")
+        form.validate(method="post", action="")
           .form-group
             .well.well-sm Tips：回复内容支持 Markdown语法
-            textarea#reply-input.form-control(name="content", rows="10", placeholder="请输入内容...")
-          button.btn.btn-primary(type="submit", style="margin-right:10px") 提交
-          button.btn.btn-default(type="reset") 清空
+            div#picker
+              span.glyphicon.glyphicon-picture(title="上传图片")
+              span#pickerTip
+            textarea#reply-input.form-control(name="content", rows="10", placeholder="请输入内容...", validate="required")
+          button.btn.btn-primary(type="submit") 提交
           button#reply-preview-btn.btn.btn-success.pull-right(type="button") 预览
         p
         #reply-preview.well(style="display:none")
@@ -103,6 +118,7 @@ block sidebar
   +usercard('发布者', author)
 
   include mod-topic-create-btn
+  include mod-collect-btn
       
   .panel.panel-default
     .panel-heading
@@ -126,4 +142,18 @@ block foot
       $('[data-toggle="popover"]').popover({
         "html": true
       });
+
+      $("form.validate").formValidate();
+
+      var $replyInput = $("#reply-input");
+
+      uploader("/topic", function(file, response){
+        $replyInput.val($replyInput.val()+"!["+file.name+"]("+response.pic+")");
+      });
+
+      $(".reply-at").on("click", function(){
+        var name = $(this).data("name");
+        $replyInput.val($replyInput.val()+" @"+name+" ");
+      });
+
     });

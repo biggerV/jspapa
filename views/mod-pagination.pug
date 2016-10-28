@@ -6,7 +6,9 @@ mixin pagination(page)
           a(href="javascript:;")= page.cur+"/"+page.total
         li(class={hide: page.cur==1})
           a(href="?page="+(page.cur-1)) &laquo;
-        - for(var i = 1; i <= page.total; i++)
+        - var pages = page.cur+2<=page.total?page.cur+2:page.total
+        - page.cur<5 && page.total>5 && (pages = 5)
+        - for(var i = page.cur<5?1:page.cur-3; i <= pages; i++)
           li(class={active: i==page.cur})
             a(href="?page="+i)= i
         li(class={hide: page.cur==page.total})

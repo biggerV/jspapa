@@ -2,7 +2,10 @@ extends ./layout
 
 block head
   title 信息设置 - 个人中心 - #{siteName}
+  link(href="/webuploader/webuploader.css" rel="stylesheet")
   script(src="/js/validate.js")
+  script(src="/webuploader/webuploader.js")
+  script(src="/webuploader/upload.js")
 
 
 block main
@@ -15,13 +18,13 @@ block main
       a(href="/user/"+user.name) 个人中心
     li.active 信息设置
 
-  .panel.panel-default
+  .panel.panel-default.user-setting
     .panel-heading
       .panel-title 信息设置
     .panel-body
       if msg
         .alert.alert-success= msg
-      form.form-horizontal.validate(action="", method="post", enctype="multipart/form-data")
+      form.form-horizontal.validate(action="", method="post")
         .form-group
           label.col-md-2.control-label 用户名
           p.col-md-5.form-control-static= me.name
@@ -36,7 +39,12 @@ block main
         .form-group
           label.col-md-2.control-label(for="avatar") 头像
           .col-md-5
-            input.form-control(id="avatar", name="avatar", value=me.avatar, type="file")
+            #picker.form-control
+              span#pickerIcon.glyphicon.glyphicon-picture(title="上传图片")
+              span#pickerShow.hide.picker-show
+              span.picker-text 点击上传
+              span#pickerTip
+            input(id="avatar", name="avatar", value=me.avatar, type="hidden")
         .form-group
           label.col-md-2.control-label(for="website") 个人网站
           .col-md-5
@@ -79,4 +87,11 @@ block foot
   script.
     $(function () {
       $("form.validate").formValidate();
+
+      uploader("/user", function(file, response){
+        var $avatar = $("#avatar");
+        $avatar.val(response.pic);
+        $("#pickerShow").html("<img src='/avatar/"+response.pic+"?"+Date.now()+"'>").removeClass("hide");
+        $("#pickerIcon").hide();
+      });
     });

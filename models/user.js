@@ -1,3 +1,4 @@
+var config = require('../config');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Schema.Types.ObjectId;
 
@@ -90,12 +91,51 @@ var userSchema = new mongoose.Schema({
   },
   
   'created': {
-    'type': Date,
-    'default': new Date()
+    'type': Date
+  },
+  
+  'level': {
+    'type': Number
+  },
+  
+  'message': {
+    'type': Number,
+    'default': 0
+  },
+  
+  'point': {
+    'type': Number,
+    'default': 0
   }
 
 }, {
   'collection': 'user'
+});
+
+userSchema.static({
+
+  updateMessageById: function(id, type){
+    var doc = {'$inc': {'message': 1}};
+    if(type === "minus"){
+      doc = {'$inc': {'message': -1}};
+    }else if(type === "clear"){
+      doc = {'$set': {'message': 0}};
+    }
+    this.update({"_id": id}, doc, function(err){
+      if(err){
+        console.log(err);
+      }
+    });
+  },
+
+  updatePointById: function(id, type){
+    this.update({"_id": id}, {'$inc': {'point': config.pointRules[type]}}, function(err){
+      if(err){
+        console.log(err);
+      }
+    });
+  }
+
 });
 
 

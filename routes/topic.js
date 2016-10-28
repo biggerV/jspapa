@@ -33,4 +33,7 @@ router.get('/edit/:id', C.edit);
 //保存编辑的主题
 router.post('/edit/:id', C.update);
 
+//上传图片接口
+router.post('/upload/', C.uploadPicSet, C.uploadPic);
+
 module.exports = router;
