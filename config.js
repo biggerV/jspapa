@@ -1,27 +1,26 @@
 var config = {
-  "mongodbUrl": "mongodb:",
+  "mongodbUrl": "mongodb://localhost:27017/db",
 
   "domain": "www.jspapa.com",
   "siteName": "JSpapa.com",
 
-  "uploadPath": "",
+  "uploadPath": "/uploadpath",
 
   "cates": {                //网站栏目
     "all": "全部",
+    "h5": "HTML/CSS",
     "js": "JavaScript",
-    "nodejs": "Node.js",
     "jquery": "jQuery",
-    "h5": "HTML5",
+    "nodejs": "Node.js",
     "wx": "微信开发",
     "job": "招聘",
     "career": "职业生涯"
   },
 
   "email": {                //系统邮件发送
-    "pwd": "",
-    "user": "",
-    "host": "",
-    "smtp": ""
+    "pwd": "xxxxxxxxxxx",
+    "user": "xxx@xxx.com",
+    "host": "smtp.xxx.com"
   },
 
   "pointRules": {
