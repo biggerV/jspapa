@@ -32,10 +32,20 @@ module.exports = {
     var id = req.params.id;
     var data = {};
 
+    if (id.length !== 24) {
+      return res.render("error", {msg: "404，没有此主题"});
+    }
+
     M.Topic.findOne({"_id": id}).exec()
     .then(function(topicDoc){
-      topicDoc.content = markdown.toHTML(topicDoc.content);
-      return data.topic = topicDoc;
+      if(topicDoc){
+        topicDoc.content = markdown.toHTML(topicDoc.content);
+        return data.topic = topicDoc;
+      }else{
+        res.render("error", {msg: "404，没有此主题"});
+        throw new Error("未找到主题");
+      }
+
     })
     .then(function(topicDoc){
       return M.User.findOne({"_id": topicDoc.user._id}).exec();
@@ -45,7 +55,7 @@ module.exports = {
       return authorDoc.topics;
     })
     .then(function(authorTopicsIds){
-      return M.Topic.find({"_id": {"$in": authorTopicsIds}}, null, {'sort': {"created": -1}}).exec();
+      return M.Topic.find({"_id": {"$in": authorTopicsIds}}, {content:0}, {'sort': {"created": -1}}).exec();
     })
     .then(function(authorTopics){
       data.authorTopics = authorTopics;

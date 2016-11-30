@@ -7,7 +7,7 @@ mixin usercard(title, user)
         p.clearfix
           span.btn.btn-default.btn-xs.pull-right #{user.point}积分
           a.avatar(href="/user/"+user.name)
-            img.avatar-img.pull-left(src=user.avatar ? "/avatar/"+user.avatar : "/avatar/"+user.name.slice(0,1).toUpperCase()+".gif")
+            img.avatar-img.pull-left(src="/avatar/avatar-"+user.name, onerror="this.src='/avatar/"+user.name.slice(0,1).toUpperCase()+".gif'")
             strong= user.name
             if user.level >= 90
               img.crown-icon(src="/images/crown_48px.png", title="管理员")

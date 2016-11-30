@@ -43,17 +43,17 @@ module.exports = {
         data.iuser = userDoc;
       }else{
         res.render("error", {msg: "没有此用户！"});
-        throw new Error();
+        throw new Error("没有此用户："+uname);
       }
     })
     .then(function(){
-      return M.Topic.find({"_id": {"$in": data.iuser.topics}}).sort({"created": -1}).exec();
+      return M.Topic.find({"_id": {"$in": data.iuser.topics}}, {content:0}).sort({"created": -1}).exec();
     })
     .then(function(topicsDoc){
       data.topics = topicsDoc;
     })
     .then(function(){
-      return M.Topic.find({"_id": {"$in": data.iuser.replies}}).exec();
+      return M.Topic.find({"_id": {"$in": data.iuser.replies}}, {content:0}).exec();
     })
     .then(function(repliesDoc){
       //重新按评论顺序排序
@@ -93,7 +93,7 @@ module.exports = {
       data.page = {"total": Math.ceil(count/limit), "count": count, "cur": cur};
     })
     .then(function(){
-      return M.Topic.find({"user._id": data.iuser._id}).sort({"created": -1}).skip(skip).limit(limit).exec();
+      return M.Topic.find({"user._id": data.iuser._id}, {content:0}).sort({"created": -1}).skip(skip).limit(limit).exec();
     })
     .then(function(userTopics){
       data.topics = userTopics;
