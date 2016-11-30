@@ -1,6 +1,7 @@
 var config = require('../config');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Schema.Types.ObjectId;
+var Mixed = mongoose.Schema.Types.Mixed;
 
 var userSchema = new mongoose.Schema({
   'name': {
@@ -57,8 +58,22 @@ var userSchema = new mongoose.Schema({
     },
     'trim': true
   },
-  
+  'country': {
+    'type': String,
+    'trim': true
+  },
+  'province': {
+    'type': String,
+    'trim': true
+  },
   'city': {
+    'type': String,
+    'trim': true
+  },
+  'gender': {
+    'type': Number
+  },
+  'nickName': {
     'type': String,
     'trim': true
   },
@@ -106,6 +121,10 @@ var userSchema = new mongoose.Schema({
   'point': {
     'type': Number,
     'default': 0
+  },
+
+  'openId': {
+    'type': String
   }
 
 }, {
