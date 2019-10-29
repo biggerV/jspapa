@@ -1,6 +1,10 @@
 # jspapa
 jspapa 是一个使用nodejs+express+mongodb开发的论坛程序，采用MVC架构，官网：www.jspapa.com
 
+有问题请加我微信，入群解决
+
+![扫码加我微信，拉你入前端群](https://github.com/biggerV/webpack4-lesson/blob/master/wechat-qrcode.jpg?raw=true)
+
 ## 持续改进
 目前这个只能算上一个V1.0 beta的版本，会持续改进，目前需要改进的如下：  
 1、缺少测试模块  
